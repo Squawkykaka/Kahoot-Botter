@@ -1,8 +1,7 @@
 const kahoot = require("kahoot.js-latest");
 
-const KAHOOT_PIN = "6089412";
-const NUM_BOTS = 10;
-console.log(`${NUM_BOTS} Bots joining on ${KAHOOT_PIN}`);
+const KAHOOT_PIN = process.argv[2];
+const NUM_BOTS = process.argv[3];
 
 const usedNames = new Set();
 
@@ -172,28 +171,57 @@ function getName() {
   );
 }
 
+if (NUM_BOTS <= 0) {
+  console.error("Number of bots must be greater than 0");
+  process.exit(1);
+}
+console.log(`${NUM_BOTS} Bots joining on ${KAHOOT_PIN}`);
+
 const clients = [];
+
+// Create a bot with a specified name and using the KAHOOT_PIN
+function createBot(name, teamnames) {
+  console.log(`Joining as ${name}...`);
+  const client = new kahoot();
+
+  client.join(KAHOOT_PIN, name, teamnames).catch((err) => {
+    console.log("Failed to join: " + err.description || err.status);
+  });
+
+  client.on("Disconnect", (reason) => {
+    console.log(`${name} disconnected: ${reason}`);
+  });
+
+  clients.push(client);
+}
 
 async function createBots() {
   for (let i = 0; i < NUM_BOTS; i++) {
     const name = getUniqueName();
-    console.log(`Joining as ${name}...`);
+    const teamnames = [
+      getUniqueName(),
+      getUniqueName(),
+      getUniqueName(),
+      getUniqueName(),
+    ];
+    createBot(name, teamnames);
 
-    const client = new kahoot();
+    // Wait 1.5 seconds between each bot to avoid rate limiting
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+}
 
-    client.on("Disconnect", (reason) => {
-      console.log(`${name} disconnected: ${reason}`);
-    });
+createBots().then(() => {
+  console.log(`Joined all bots!`);
 
-    client.on("QuizStart", () => {
-      console.log("The quiz has started!");
-    });
+  clients[0].on("QuizStart", () => {
+    console.log("The quiz has started!");
+  });
+  clients[0].on("QuizEnd", () => {
+    console.log("The quiz has ended!");
+  });
 
-    client.on("QuizEnd", () => {
-      console.log("The quiz has ended.");
-      client.leave();
-    });
-
+  clients.forEach((client) => {
     client.on("QuestionStart", (question) => {
       let answerIndex;
 
@@ -202,16 +230,8 @@ async function createBots() {
       question.answer(answerIndex);
     });
 
-    await client.join(KAHOOT_PIN, name).catch((err) => {
-      console.log("Failed to join: " + err.description || err.status);
+    client.on("QuizEnd", () => {
+      client.leave();
     });
-    clients.push(client);
-
-    await new Promise((r) => setTimeout(r, 250));
-  }
-  console.log(`Joined all bots!`);
-}
-
-createBots();
-
-clients.forEach((client) => {});
+  });
+});
