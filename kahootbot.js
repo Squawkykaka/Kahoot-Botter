@@ -207,7 +207,7 @@ async function createBots() {
     createBot(name, teamnames);
 
     // Wait 1.5 seconds between each bot to avoid rate limiting
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 }
 

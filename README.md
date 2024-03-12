@@ -1,6 +1,6 @@
 # Kahoot Botter
 
-This project is a simple Kahoot botter built with Node.js. It uses the `kahoot.js-latest` library to create multiple bots that join a Kahoot game.
+This project is a (Very crappy) Kahoot botter built with Node.js. It uses the `kahoot.js-latest` library to create multiple bots that join a Kahoot game.
 
 ## Getting Started
 
@@ -33,10 +33,8 @@ npm install
 To start the botter, run the following command:
 
 ```sh
-node index.js
+node kahootbot.js {{game pin}} {{bot amount}}
 ```
-
-By default, the botter will create 10 bots and join the Kahoot game with the pin `6089412`. You can change these values by modifying the `NUM_BOTS` and `KAHOOT_PIN` variables in `index.js`.
 
 ## Contributing
 
